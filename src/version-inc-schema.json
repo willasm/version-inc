@@ -1,0 +1,30 @@
+{
+    "title": "version-inc-schema",
+    "description": "Validation for version-inc settings file",
+    "type": "object",
+    "required": ["filename", "enable"],
+    "properties": {
+        "filename": {
+            "description": "Name of the file to update",
+            "type": "string"
+        },
+
+        "filelocation": {
+            "description": "Location of the file to update",
+            "type": "string"
+        },
+
+        "enable": {
+            "description": "Enable version-inc to update this file",
+            "type": "boolean"
+        },
+        "replacebefore": {
+            "description": "Optional replace ahead of new version string",
+            "type": "string"
+        },
+        "replaceafter": {
+            "description": "Optional replace after new version string",
+            "type": "string"
+        }
+    }
+}
