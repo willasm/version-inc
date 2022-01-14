@@ -10,7 +10,7 @@ Increases the version in projects package.json file.
 
 
 ## Screenshot
-![Example Screenshot](./images/version-inc-demo.png)
+![Example Screenshot](./images/version-inc-demo.gif)
 
 
 ## Usage
