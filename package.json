@@ -1,70 +1,74 @@
 {
-    "name": "version-inc",
-    "displayName": "Version Inc",
-    "description": "Increments the version in package.json file",
-    "version": "0.0.1",
-    "publisher": "willasm",
-    "author": {
-        "name": "William McKeever"
-    },
-    "license": "MIT - SEE LICENSE IN LICENSE.md",
-    "engines": {
-        "vscode": "^1.63.0"
-    },
-    "categories": [
-        "Other"
-    ],
-    "keywords": [
-        "version",
-        "project",
-        "increment",
-        "decrement",
-        "increase",
-        "decrease",
-        "bump",
-        "control",
-        "update"
-    ],
-    "activationEvents": [
-        "*",
-        "onCommand:version-inc.version-inc",
-        "onCommand:version-inc.version-dec"
-    ],
-    "bugs": {
-        "url": "https://github.com/willasm/version-inc/issues",
-        "email": "willmck63@gmail.com"
-    },
-    "homepage": "https://github.com/willasm/version-inc",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/willasm/version-inc.git"
-    },
-    "main": "src/extension.js",
-    "contributes": {
-        "commands": [{
-                "command": "version-inc.version-inc",
-                "title": "Version Inc: Increment Package.json Version"
-            },
-            {
-                "command": "version-inc.version-dec",
-                "title": "Version Inc: Decrement Package.json Version"
-            },
-            {
-                "command": "version-inc.edit-files-list",
-                "title": "Version Inc: Edit Settings for Update Files"
-            }
-        ],
-        "configuration": [{
-            "title": "Version Inc",
-            "properties": {
-                "version-inc.statusBarPrompt": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Prompt for choice of Increment or Decrement version"
-                }
-            }
-        }]
-    },
-    "scripts": {},
-    "devDependencies": {}
+	"name": "version-inc",
+	"displayName": "Version Inc",
+	"description": "Increments the version in package.json file",
+	"version": "0.0.2",
+	"publisher": "willasm",
+	"author": {
+		"name": "William McKeever"
+	},
+	"license": "MIT - SEE LICENSE IN LICENSE.md",
+	"engines": {
+		"vscode": "^1.63.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"icon": "images/icon.png",
+	"keywords": [
+		"version",
+		"project",
+		"increment",
+		"decrement",
+		"increase",
+		"decrease",
+		"bump",
+		"control",
+		"update"
+	],
+	"activationEvents": [
+		"*",
+		"onCommand:version-inc.version-inc",
+		"onCommand:version-inc.version-dec"
+	],
+	"bugs": {
+		"url": "https://github.com/willasm/version-inc/issues",
+		"email": "willmck63@gmail.com"
+	},
+	"homepage": "https://github.com/willasm/version-inc",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/willasm/version-inc.git"
+	},
+	"main": "src/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "version-inc.version-inc",
+				"title": "Version Inc: Increment Package.json Version"
+			},
+			{
+				"command": "version-inc.version-dec",
+				"title": "Version Inc: Decrement Package.json Version"
+			},
+			{
+				"command": "version-inc.edit-files-list",
+				"title": "Version Inc: Edit Settings for Update Files"
+			}
+		],
+		"configuration": [
+			{
+				"title": "Version Inc",
+				"properties": {
+					"version-inc.statusBarPrompt": {
+						"type": "boolean",
+						"default": false,
+						"description": "Prompt for choice of Increment or Decrement version"
+					}
+				}
+			}
+		]
+	},
+	"scripts": {},
+	"devDependencies": {}
 }
