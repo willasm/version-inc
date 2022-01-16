@@ -27,7 +27,7 @@ The following commands are available from the command pallette:
 Or simply click on the status bar item to increment the current version.
 
 ## Configure Project Files to Update
-The string `"V-INC"` can be iserted into any project file and this will optionally be replaced with the new versions string. These files are maintained in the `version-inc.json` file stored in this extensions Global Storage folder. This settings file can be edited with the command `Version Inc: Edit Settings for Update Files`. By default it contains 2 example files, `example.md` and `example.js` (also stored in the Global Storage folder).
+The string `"V-INC"` can be iserted into any project file and this will optionally be replaced with the new versions string. These files are maintained in the `version-inc-{ProjectName}.json` file stored in this extensions Global Storage folder. This settings file can be edited with the command `Version Inc: Edit Settings for Update Files`. By default it contains 2 example files, `example.md` and `example.js` (also stored in the Global Storage folder).
 
 Here is the default settings...
 
@@ -51,9 +51,9 @@ Here is the default settings...
 ```
 The `"filename":` entry contains the file name to update.
 
-The `"filelocation":` entry is the path to the file to update. This can be set to `${workspaceFolder}` or simply `""` to set location to the projects root folder. To set location to a sub-folder within the projects root folder enter `"subfoldername"` or `subfoldername\\secondlevelfolder` without a trailing `\\`. The name `"${globalStorage}"` used for the example files simply points to this extensions Global Storage storage location.
+The `"filelocation":` entry is the path to the file to update. This can be set to `${workspaceFolder}` or simply `""` to set location to the projects root folder. To set location to a sub-folder within the projects root folder enter `"subfoldername"` or `subfoldername\\secondlevelfolder` without a trailing `\\`. The name `"${globalStorage}"` used for the example files simply points to this extensions Global Storage storage location where the example files are strored.
 
-`"enable":` Enable (`true`) or disable (`false`) updating this file.
+`"enable":` Enable (`true`) or disable (`false`) for updating of this file.
 
 `"insertbefore":` String to insert before the new version string.
 

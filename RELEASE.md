@@ -1,7 +1,8 @@
 # Release Notes
 
-## [0.0.2]
-- Added `Version Inc: Edit Settings for Update Files`
+## [0.0.3]
+- Fixed - Each project now has its own files list json file.
+
 
 For a full list of changes, please see the projects [Changelog](CHANGELOG.md) file.
 

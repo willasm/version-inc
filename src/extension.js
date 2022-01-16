@@ -3,7 +3,6 @@ const fs = require("fs");
 const path = require("path");
 const { readFile } = require('fs/promises')
 const { join } = require('path')
-const os = require("os");
 
 module.exports = {
     activate,
@@ -12,19 +11,36 @@ module.exports = {
 
 let myStatusBarItem;
 let myContext;
+let globalSettingsPath;
+let globalSettingsFile;
+let packageJsonFile;
+let workspaceName;
+let projectName;
 let settings = vscode.workspace.getConfiguration("version-inc");
 let promptStatusBarCommand = settings.get("statusBarPrompt");
 
 // ========================================================================== //
 // ---=== Function Activate (Extension Activation) ===---
 // ========================================================================== //
-function activate(context) {
+async function activate(context) {
 
-    createStatusBarItem();
-    initStatusBar();
-    myStatusBarItem.show();
-    initSettingsFilePath(context);
-    myContext = context;
+    // ========================================================================== //
+    //      Activate - Initialize Extension
+    globalSettingsPath = context.globalStoragePath;
+    workspaceName = path.basename(vscode.workspace.workspaceFolders[0].uri.fsPath);
+    packageJsonFile = join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'package.json');
+    const packageFile = await readFile(packageJsonFile); // Read file into memory
+    const packageJson = JSON.parse(packageFile.toString()); // Parse json
+    projectName = packageJson['displayName']; // Get displayName for status bar project name
+    if (projectName == undefined); { // If displayName not found then default to project folder name
+        projectName = workspaceName;
+    }
+    globalSettingsFile = globalSettingsPath + '\\' + 'version-inc-' + projectName + '.json'; // Files list json file
+    myContext = context; // Save context
+    await initSettingsFilePath(context); // Initialize settings and example files
+    createStatusBarItem(); // Create status bar item
+    await initStatusBar(); // Initialize status bar item
+    myStatusBarItem.show(); // Show status bar item
 
     // ========================================================================== //
     //      Activate - Register Extension Commands
@@ -46,12 +62,11 @@ function activate(context) {
 // ---=== initStatusBar (Initialize Status Bar Item) ===---
 // ========================================================================== //
 async function initStatusBar() {
-    packagePath = join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'package.json'); // Full path to package.json
-    const packageFile = await readFile(this.packagePath); // Read file into memory
+    const packageFile = await readFile(packageJsonFile); // Read file into memory
     const packageJson = JSON.parse(packageFile.toString()); // Parse json
-    const name = packageJson['displayName']; // Get display name for status bar
+    const displayName = packageJson['displayName']; // Get display name for status bar
     const version = packageJson['version']; // Get projects current version for status bar
-    myStatusBarItem.text = '$(versions) ' + name + ' ' + 'v' + version // Update status bar items text
+    myStatusBarItem.text = '$(versions) ' + projectName + ' ' + 'v' + version // Update status bar items text
 }
 
 // ========================================================================== //
@@ -119,9 +134,8 @@ async function incVersion() {
     }
     const packageFile = await readFile(this.packagePath);
     const packageJson = JSON.parse(packageFile.toString());
-    const name = packageJson['displayName'];
+    const displayName = packageJson['displayName'];
     const version = packageJson['version'];
-    //    const version = packageJson.version;
     const versionArr = version.split('.').map(Number);
     const versions = {
         major: [versionArr[0] + 1, 0, 0].join('.'),
@@ -160,7 +174,7 @@ async function incVersion() {
     fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, '\t'));
     // Notify user of new version
     vscode.window.showInformationMessage(`Version Bumped to ${newVersion}`);
-    myStatusBarItem.text = '$(versions) ' + name + ' ' + 'v' + newVersion;
+    myStatusBarItem.text = '$(versions) ' + displayName + ' ' + 'v' + newVersion;
     updateOtherFiles(newVersion);
 }
 
@@ -175,7 +189,7 @@ async function decVersion() {
     }
     const packageFile = await readFile(this.packagePath);
     const packageJson = JSON.parse(packageFile.toString());
-    const name = packageJson['displayName'];
+    const displayName = packageJson['displayName'];
     const version = packageJson['version'];
     const versionArr = version.split('.').map(Number);
     const versions = {
@@ -222,7 +236,7 @@ async function decVersion() {
     fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, '\t'));
     // Notify user of new version
     vscode.window.showInformationMessage(`Version Bumped to ${newVersion}`);
-    myStatusBarItem.text = '$(versions) ' + name + ' ' + 'v' + newVersion;
+    myStatusBarItem.text = '$(versions) ' + displayName + ' ' + 'v' + newVersion;
     updateOtherFiles(newVersion);
 }
 
@@ -230,8 +244,7 @@ async function decVersion() {
 // ---=== editFiles (Edit Files in version-inc.json) ===---
 // ========================================================================== //
 async function editFilesList() {
-    const settingsFile = join(myContext.globalStoragePath, 'version-inc.json'); // Full path to settings file
-    var document = await vscode.workspace.openTextDocument(settingsFile); // Open it for editing
+    var document = await vscode.workspace.openTextDocument(globalSettingsFile); // Open it for editing
     await vscode.window.showTextDocument(document);
 }
 
@@ -241,8 +254,7 @@ async function editFilesList() {
 async function updateOtherFiles(newVersion) {
 
     // Load settings file into memory
-    const settingsFile = join(myContext.globalStoragePath, 'version-inc.json');
-    const packageFile = await readFile(settingsFile);
+    const packageFile = await readFile(globalSettingsFile);
     const packageJson = JSON.parse(packageFile.toString("utf-8"));
     const length = packageJson['length'];
 
@@ -292,22 +304,21 @@ async function updateOtherFiles(newVersion) {
 // ========================================================================== //
 async function initSettingsFilePath(context) {
 
-    // Default settings json file
-    const defaultSettings = "[\n\t{\n\t\t\"filename\": \"example.md\",\n\t\t\"filelocation\": \"${globalStorage}\",\n\t\t\"enable\": false,\n\t\t\"insertbefore\": \"\",\n\t\t\"insertafter\": \"\"\n\t},\n\t{\n\t\t\"filename\": \"example.js\",\n\t\t\"filelocation\": \"${globalStorage}\",\n\t\t\"enable\": false,\n\t\t\"insertbefore\": \"v\",\n\t\t\"insertafter\": \"-Beta\"\n\t}\n]\n"
-        // example.md file
+    // Default files list settings json file
+    const defaultSettings = "[\n\t{\n\t\t\"filename\": \"example.md\",\n\t\t\"filelocation\": \"${globalStorage}\",\n\t\t\"enable\": false,\n\t\t\"insertbefore\": \"\",\n\t\t\"insertafter\": \"\"\n\t},\n\t{\n\t\t\"filename\": \"example.js\",\n\t\t\"filelocation\": \"${globalStorage}\",\n\t\t\"enable\": false,\n\t\t\"insertbefore\": \"v\",\n\t\t\"insertafter\": \"-Beta\"\n\t}\n]\n";
+    // example.md file
     const exampleMD = "# Example of using Version-Inc in a markdown file\n\n## Change Log\n\n## [v-inc]\n\n[comment]: # (Markdown comment examples: V-INC)\n\n<!-- V-INC -->\n";
     // example.js file
     const exampleJS = "//----------------------------------\n// Version-Inc example in a java script file\n//\n// File version: V-INC\n//\n// Product version: v-inc\n//----------------------------------\n";
-    const storagePath = context.globalStoragePath;
-    // If folder does not exist then create it and the default settings file
-    if (fs.existsSync(storagePath)) {
+    // If folder does exist then return
+    if (fs.existsSync(globalSettingsPath)) {
         return;
     }
-    fs.mkdirSync(storagePath, { recursive: true });
-    const settingsFilePath = path.join(storagePath, 'version-inc.json');
-    const exampleMDFilePath = path.join(storagePath, 'example.md');
-    const exampleJSFilePath = path.join(storagePath, 'example.js');
-    fs.writeFileSync(settingsFilePath, defaultSettings, 'utf8');
+    // If folder does not exist then create it and the default settings file
+    fs.mkdirSync(globalSettingsPath, { recursive: true });
+    const exampleMDFilePath = path.join(globalSettingsPath, 'example.md');
+    const exampleJSFilePath = path.join(globalSettingsPath, 'example.js');
+    fs.writeFileSync(globalSettingsFile, defaultSettings, 'utf8');
     fs.writeFileSync(exampleMDFilePath, exampleMD, 'utf8');
     fs.writeFileSync(exampleJSFilePath, exampleJS, 'utf8');
 }
