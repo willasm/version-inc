@@ -1,6 +1,7 @@
 # Release Notes
-## v0.0.1
-- Initial Release
+
+## [0.0.2]
+- Added `Version Inc: Edit Settings for Update Files`
 
 For a full list of changes, please see the projects [Changelog](CHANGELOG.md) file.
 
