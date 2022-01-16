@@ -1,3 +1,8 @@
+![](https://vsmarketplacebadge.apphb.com/version-short/willasm.version-inc.svg)
+![](https://vsmarketplacebadge.apphb.com/installs-short/willasm.version-inc.svg)
+![](https://vsmarketplacebadge.apphb.com/downloads-short/willasm.version-inc.svg)
+![](https://vsmarketplacebadge.apphb.com/rating/willasm.version-inc.svg)
+
 # Version Inc
 Increases the version in projects package.json file.
 
