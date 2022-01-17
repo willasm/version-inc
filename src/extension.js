@@ -32,9 +32,6 @@ async function activate(context) {
     const packageFile = await readFile(packageJsonFile); // Read file into memory
     const packageJson = JSON.parse(packageFile.toString()); // Parse json
     projectName = packageJson['displayName']; // Get displayName for status bar project name
-    if (projectName == undefined); { // If displayName not found then default to project folder name
-        projectName = workspaceName;
-    }
     globalSettingsFile = globalSettingsPath + '\\' + 'version-inc-' + projectName + '.json'; // Files list json file
     myContext = context; // Save context
     await initSettingsFilePath(context); // Initialize settings and example files
@@ -64,7 +61,6 @@ async function activate(context) {
 async function initStatusBar() {
     const packageFile = await readFile(packageJsonFile); // Read file into memory
     const packageJson = JSON.parse(packageFile.toString()); // Parse json
-    const displayName = packageJson['displayName']; // Get display name for status bar
     const version = packageJson['version']; // Get projects current version for status bar
     myStatusBarItem.text = '$(versions) ' + projectName + ' ' + 'v' + version // Update status bar items text
 }
@@ -244,6 +240,32 @@ async function decVersion() {
 // ---=== editFiles (Edit Files in version-inc.json) ===---
 // ========================================================================== //
 async function editFilesList() {
+    // Default files list settings json file
+    const defaultSettings = "[\n\t{\n\t\t\"filename\": \"example.md\",\n\t\t\"filelocation\": \"${globalStorage}\",\n\t\t\"enable\": false,\n\t\t\"insertbefore\": \"\",\n\t\t\"insertafter\": \"\"\n\t},\n\t{\n\t\t\"filename\": \"example.js\",\n\t\t\"filelocation\": \"${globalStorage}\",\n\t\t\"enable\": false,\n\t\t\"insertbefore\": \"v\",\n\t\t\"insertafter\": \"-Beta\"\n\t}\n]\n";
+    // example.md file
+    const exampleMD = "# Example of using Version-Inc in a markdown file\n\n## Change Log\n\n## [v-inc]\n\n[comment]: # (Markdown comment examples: V-INC)\n\n<!-- V-INC -->\n";
+    // example.js file
+    const exampleJS = "//----------------------------------\n// Version-Inc example in a java script file\n//\n// File version: V-INC\n//\n// Product version: v-inc\n//----------------------------------\n";
+    if (fs.existsSync(globalSettingsPath)) { // Folder exists so verify settings file exists
+        if (fs.existsSync(globalSettingsFile)) {
+            // File exists
+            var document = await vscode.workspace.openTextDocument(globalSettingsFile); // Open it for editing
+            await vscode.window.showTextDocument(document);
+            return;
+        } else { // Write new settings file if it does not exist
+            // Default files list settings json file
+            fs.writeFileSync(globalSettingsFile, defaultSettings, 'utf8');
+            var document = await vscode.workspace.openTextDocument(globalSettingsFile); // Open it for editing
+            await vscode.window.showTextDocument(document);
+            return;
+        }
+    }
+    fs.mkdirSync(globalSettingsPath, { recursive: true });
+    const exampleMDFilePath = path.join(globalSettingsPath, 'example.md');
+    const exampleJSFilePath = path.join(globalSettingsPath, 'example.js');
+    fs.writeFileSync(globalSettingsFile, defaultSettings, 'utf8');
+    fs.writeFileSync(exampleMDFilePath, exampleMD, 'utf8');
+    fs.writeFileSync(exampleJSFilePath, exampleJS, 'utf8');
     var document = await vscode.workspace.openTextDocument(globalSettingsFile); // Open it for editing
     await vscode.window.showTextDocument(document);
 }
@@ -311,8 +333,14 @@ async function initSettingsFilePath(context) {
     // example.js file
     const exampleJS = "//----------------------------------\n// Version-Inc example in a java script file\n//\n// File version: V-INC\n//\n// Product version: v-inc\n//----------------------------------\n";
     // If folder does exist then return
-    if (fs.existsSync(globalSettingsPath)) {
-        return;
+    if (fs.existsSync(globalSettingsPath)) { // Folder exists so verify settings file exists
+        if (fs.existsSync(globalSettingsFile)) {
+            // File exists
+            return;
+        } else { // Write new settings file if it does not exist
+            fs.writeFileSync(globalSettingsFile, defaultSettings, 'utf8');
+            return;
+        }
     }
     // If folder does not exist then create it and the default settings file
     fs.mkdirSync(globalSettingsPath, { recursive: true });

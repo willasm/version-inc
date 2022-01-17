@@ -1,7 +1,7 @@
 # Release Notes
 
-## [0.0.3]
-- Fixed - Each project now has its own files list json file.
+## [0.0.4]
+- Fixed - Will now create projects files list json file if it does not exist.
 
 
 For a full list of changes, please see the projects [Changelog](CHANGELOG.md) file.
