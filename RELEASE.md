@@ -1,6 +1,6 @@
 # Release Notes
 
-## [0.0.4]
+## [0.0.4] 2022-01-17
 - Fixed - Will now create projects files list json file if it does not exist.
 
 
