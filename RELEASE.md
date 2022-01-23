@@ -1,6 +1,6 @@
 # Release Notes
 
-## [0.0.5] 2022-01-17
+## [0.0.5] 2022-01-23
 - Fixed - Status bar item will default to `"name"` entry if `"displayName"` entry is not defined.
 
 
