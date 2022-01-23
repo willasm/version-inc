@@ -32,6 +32,9 @@ async function activate(context) {
     const packageFile = await readFile(packageJsonFile); // Read file into memory
     const packageJson = JSON.parse(packageFile.toString()); // Parse json
     projectName = packageJson['displayName']; // Get displayName for status bar project name
+    if (projectName === undefined) {
+        projectName = packageJson['name']; // Get displayName for status bar project name
+    }
     globalSettingsFile = globalSettingsPath + '\\' + 'version-inc-' + projectName + '.json'; // Files list json file
     myContext = context; // Save context
     await initSettingsFilePath(context); // Initialize settings and example files
