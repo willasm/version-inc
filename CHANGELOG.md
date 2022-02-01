@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.0.6] 2022-02-01
+- Added - Files settings option to retain v-inc line in file.
+- Added - Date and Time macros.
+- Added - Edit example files command.
+
 ## [0.0.5] 2022-01-23
 - Fixed - Status bar item will default to `"name"` entry if `"displayName"` entry is not defined.
 
