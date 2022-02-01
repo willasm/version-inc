@@ -2,7 +2,7 @@
 	"name": "version-inc",
 	"displayName": "Version Inc",
 	"description": "Increments the version in package.json file",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"publisher": "willasm",
 	"author": {
 		"name": "William McKeever"
@@ -54,6 +54,10 @@
 			{
 				"command": "version-inc.edit-files-list",
 				"title": "Version Inc: Edit Settings for Update Files"
+			},
+			{
+				"command": "version-inc.edit-example-files",
+				"title": "Version Inc: Edit Example Files"
 			}
 		],
 		"configuration": [
