@@ -289,10 +289,12 @@ async function updateOtherFiles(newVersion) {
         }
 
         // Retrieve the rest of the settings
-        var enable = packageJson[i]['Enable'];          // Enable replace flag
-        var insBefore = packageJson[i]['InsertBefore']; // String to insert before version string
-        var insAfter = packageJson[i]['InsertAfter'];   // String to insert after version string
-        var retainLine = packageJson[i]['RetainLine'];  // Retain version string trigger line
+        var enable = packageJson[i]['Enable'];                      // Enable replace flag
+        var insBefore = packageJson[i]['InsertBefore'];             // String to insert before version string
+        var insAfter = packageJson[i]['InsertAfter'];               // String to insert after version string
+        var retainLine = packageJson[i]['RetainLine'];              // Retain version string macro line
+        var trimTextStart = packageJson[i]['TrimTextStart'];        // Number of characters to trim from start of line
+        var trimTextEnd = packageJson[i]['TrimTextEnd'];            // Number of characters to trim from end of line
         var newVersionString = insBefore + newVersion + insAfter;   // Final new version string
 
         //----------------------------------------
@@ -338,8 +340,8 @@ async function updateOtherFiles(newVersion) {
         var date = new Date();
         var [year, month, day] = [date.getFullYear(), date.getMonth()+1, date.getDate()];
         var [hours, minutes, seconds] = [date.getHours(), date.getMinutes(), date.getSeconds()];
-//hours = 12; // For testing hours, REMOVE when done
-//month = 12; // For testing months, REMOVE when done
+        //hours = 12; // For testing hours, REMOVE when done
+        //month = 12; // For testing months, REMOVE when done
         var h12 = hours;
         var h24 = hours;
         var ampmU = 'AM';
@@ -512,11 +514,14 @@ async function updateOtherFiles(newVersion) {
                 }
 
                 if (vincMatched) {
-                    if (retainLine == true) {
-                        result = text+'\n\n'+result;    // Save Trigger Line for Reuse
-                    }
                     dirtyFlag = true;
+                    if (trimTextStart > 0 || trimTextEnd > 0) {
+                        result = result.substring(trimTextStart,result.length-trimTextEnd)
                     }
+                    if (retainLine == true) {
+                        result = text+'\n\n'+result;            // Save Macro Line for Reuse
+                    }
+                }
 
                 //----------------------------------------
                 // Now Replace Current Line in the File
@@ -539,11 +544,44 @@ async function updateOtherFiles(newVersion) {
 async function initSettingsFilePath(context) {
 
     // Default files list settings json file
-    const defaultSettings = "[\n\t{\n\t\t\"Filename\": \"example.md\",\n\t\t\"FileLocation\": \"${globalStorage}\",\n\t\t\"Enable\": false,\n\t\t\"RetainLine\": true,\n\t\t\"InsertBefore\": \"\",\n\t\t\"InsertAfter\": \"\"\n\t},\n\t{\n\t\t\"Filename\": \"example.js\",\n\t\t\"FileLocation\": \"${globalStorage}\",\n\t\t\"Enable\": false,\n\t\t\"RetainLine\": false,\n\t\t\"InsertBefore\": \"v\",\n\t\t\"InsertAfter\": \"-Beta\"\n\t}\n]\n";
+    const defaultSettings = '[\n\t' +
+                            '{\n\t\t' +
+                            '\"Filename\": \"example.md\",\n\t\t' +
+                            '\"FileLocation\": \"${globalStorage}\",\n\t\t' +
+                            '\"Enable\": false,\n\t\t' +
+                            '\"RetainLine\": true,\n\t\t' +
+                            '\"InsertBefore\": \"\",\n\t\t' +
+                            '\"InsertAfter\": \"\",\n\t\t' +
+                            '\"TrimTextStart\": 5,\n\t\t' +
+                            '\"TrimTextEnd\": 38\n\t' +
+                            '},\n\t' +
+                            '{\n\t\t' +
+                            '\"Filename\": \"example.js\",\n\t\t' +
+                            '\"FileLocation\": \"${globalStorage}\",\n\t\t' +
+                            '\"Enable\": false,\n\t\t' +
+                            '\"RetainLine\": false,\n\t\t' +
+                            '\"InsertBefore\": \"v\",\n\t\t' +
+                            '\"InsertAfter\": \"-Beta\",\n\t\t' +
+                            '\"TrimTextStart\": 0,\n\t\t' +
+                            '\"TrimTextEnd\": 0\n\t' +
+                            '}\n' +
+                            ']\n';
     // example.md file
-    const exampleMD = "# Example of using Version-Inc in a markdown file\n\n## Change Log\n\n## [v-inc] - ${DATE}\n";
+    const exampleMD = '# Version-Inc example in a markdown file\n\n' +
+                      '## Change Log\n\n' +
+                      '<!-- ## [v-inc] - ${YEAR4}-${MONTHNUMBER}-${DATE} Note: this Line will be preserved -->\n';
     // example.js file
-    const exampleJS = "//----------------------------------\n// Version-Inc example in a java script file\n//\n// File version: V-INC\n//\n// Product version: v-inc\n//----------------------------------\n";
+    const exampleJS = '//--------------------------------------------------\n' +
+                      '// Version-Inc example in a java script file\n' +
+                      '//--------------------------------------------------\n' +
+                      '//\n' +
+                      '// Last Modification: ${MONTHTEXTL} ${DATE} ${YEAR4}\n' +
+                      '//                At: ${H12}:${MIN}:${SEC} ${AMPMU}\n' +
+                      '//\n' +
+                      '// File Version...: V-INC\n' +
+                      '//\n' +
+                      '// Product version: v-inc\n' +
+                      '//--------------------------------------------------\n';
     // If folder does exist then verifiy extensions files exist
     if (fs.existsSync(globalSettingsPath)) {
         if (!fs.existsSync(globalSettingsFile)) {

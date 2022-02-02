@@ -37,20 +37,24 @@ Here is the default settings...
 ```
 [
 	{
-		"filename": "example.md",
-		"filelocation": "${globalStorage}",
-		"enable": false,
+		"Filename": "example.md",
+		"FileLocation": "${globalStorage}",
+		"Enable": false,
 		"RetainLine": true,
-		"insertbefore": "",
-		"insertafter": ""
+		"InsertBefore": "",
+		"InsertAfter": ""
+		"TrimTextStart": 5,
+		"TrimTextEnd": 38
 	},
 	{
-		"filename": "example.js",
-		"filelocation": "${globalStorage}",
-		"enable": false,
+		"Filename": "example.js",
+		"FileLocation": "${globalStorage}",
+		"Enable": false,
 		"RetainLine": false,
-		"insertbefore": "v",
-		"insertafter": "-Beta"
+		"InsertBefore": "v",
+		"InsertAfter": "-Beta"
+		"TrimTextStart": 0,
+		"TrimTextEnd": 0
 	}
 ]
 ```
@@ -66,10 +70,14 @@ The `"FileLocation":` entry is the path to the file to update. This can be set t
 
 `"InsertAfter":` String to insert after the new version string.
 
+`"TrimTextStart":` Number of characters to trim from the start of the line with the v-inc macro.
 
-To see this extension in operation, open the example files with the command `Version Inc: Edit Example Files`, then enable the example files (Set Enable to true), then run the increment version command to see the results.
+`"TrimTextEnd":` Number of characters to trim from the end of the line with the v-inc macro.
 
-Note: The `RetainLine` option was added in v0-0-0-6 so if you have modified the settings file from a previous version you will need to add the line to the settings file (see the example settings above).
+
+To see this extension in operation, open the example files with the command `Version Inc: Edit Example Files`, then enable the example files (Set Enable to true), then run the increment version command to see the results. Note that this will increment the version in your package.json file but you can use the command `Version Inc: Decrement Package.json Version` to restore it after you have examined the example files.
+
+Note: The `RetainLine`, `"TrimTextStart"` and `"TrimTextStart"` options were added in v0-0-0-6 so if you have modified the settings file from a previous version you will need to add the line to the settings file (see the example settings above).
 
 Note: The updated files are not automatically saved. This allows you to review the changes made and to continue making any other changes you require.
 
