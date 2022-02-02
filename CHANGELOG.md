@@ -1,12 +1,15 @@
 # Change Log
 
 ## [0.0.6] 2022-02-01
-- Added - Files settings option to retain v-inc line in file.
+- Added - Files settings option to retain v-inc line in file (`RetainLine`).
+- Added - Files settings option to trim characters from start of line with V-INC macro (`TrimTextStart`).
+- Added - Files settings option to trim characters from end of line with V-INC macro (`TrimTextEnd`).
 - Added - Date and Time macros.
 - Added - Edit example files command.
+- Updated - Screenshot has been updated to reflect the new changes.
 
 ## [0.0.5] 2022-01-23
-- Fixed - Status bar item will default to `"name"` entry if `"displayName"` entry is not defined.
+- Fixed - Status bar item text will default to `"name"` entry if `"displayName"` entry is not defined.
 
 ## [0.0.4] 2022-01-17
 - Fixed - Will now create projects files list json file if it does not exist.
