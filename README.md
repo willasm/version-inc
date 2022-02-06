@@ -32,6 +32,8 @@ Or simply click on the status bar item to increment the current version.
 ## Configure Project Files to Update
 The string `"V-INC"` (case insensitive) can be inserted into any project file and this will be replaced with the new versions string. The files list is maintained in the `version-inc-{ProjectName}.json` file stored in this extensions Global Storage folder. This settings file can be edited with the command `Version Inc: Edit Settings for Update Files`. By default it contains 2 example files, `example.md` and `example.js` (also stored in the Global Storage folder).
 
+The settings file also has json schema validation which simplifies adding new file entries.
+
 Here is the default settings...
 
 ```
@@ -77,7 +79,7 @@ The `"FileLocation":` entry is the path to the file to update. This can be set t
 
 To see this extension in operation, open the example files with the command `Version Inc: Edit Example Files`, then enable the example files (Set Enable to true), then run the increment version command to see the results. Note that this will increment the version in your package.json file but you can use the command `Version Inc: Decrement Package.json Version` to restore it after you have examined the example files.
 
-Note: The `RetainLine`, `"TrimTextStart"` and `"TrimTextStart"` options were added in v0-0-0-6 so if you have modified the settings file from a previous version you will need to add the line to the settings file (see the example settings above).
+Note: The `RetainLine`, `"TrimTextStart"` and `"TrimTextStart"` options were added in v0-0-6 so if you have modified the settings file from a previous version you will need to add the respective lines to any project settings file you have (see the example settings above).
 
 Note: The updated files are not automatically saved. This allows you to review the changes made and to continue making any other changes you require.
 
