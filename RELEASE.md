@@ -1,8 +1,8 @@
 # Release Notes
 
-## [0.0.7] 2022-02-06
-### Added
-- Added version-inc-schema.json for settings validation (Greatly simplifies adding new file entries)
+## [0.0.8] 2022-02-06
+### Updated 
+- Updated CHANGELOG.md
 
 
 For a full list of changes, please see the projects [Changelog](CHANGELOG.md) file.

@@ -2,7 +2,7 @@
 	"name": "version-inc",
 	"displayName": "Version Inc",
 	"description": "Increments the version in package.json file",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"publisher": "willasm",
 	"author": {
 		"name": "William McKeever"
