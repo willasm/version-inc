@@ -1,30 +1,168 @@
 {
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "array",
     "title": "version-inc-schema",
-    "description": "Validation for version-inc settings file",
-    "type": "object",
-    "required": ["filename", "enable"],
-    "properties": {
-        "filename": {
-            "description": "Name of the file to update",
-            "type": "string"
-        },
-
-        "filelocation": {
-            "description": "Location of the file to update",
-            "type": "string"
-        },
-
-        "enable": {
-            "description": "Enable version-inc to update this file",
-            "type": "boolean"
-        },
-        "replacebefore": {
-            "description": "Optional replace ahead of new version string",
-            "type": "string"
-        },
-        "replaceafter": {
-            "description": "Optional replace after new version string",
-            "type": "string"
-        }
+    "description": "Validation for version-inc settings file.",
+    "default": [],
+    "examples": [
+        [
+            {
+                "Filename": "example.md",
+                "FileLocation": "${globalStorage}",
+                "Enable": true,
+                "RetainLine": true,
+                "InsertBefore": "",
+                "InsertAfter": "",
+                "TrimTextStart": 5,
+                "TrimTextEnd": 38
+            },
+            {
+                "Filename": "example.js",
+                "FileLocation": "${globalStorage}",
+                "Enable": true,
+                "RetainLine": false,
+                "InsertBefore": "v",
+                "InsertAfter": "-Beta",
+                "TrimTextStart": 0,
+                "TrimTextEnd": 0
+            }
+        ]
+    ],
+    "additionalItems": true,
+    "items": {
+        "$id": "#/items",
+        "anyOf": [
+            {
+                "$id": "#/items/anyOf/0",
+                "type": "object",
+                "title": "New File Section",
+                "description": "File to update entry.",
+                "default": {},
+                "examples": [
+                    {
+                        "Filename": "example.md",
+                        "FileLocation": "${globalStorage}",
+                        "Enable": true,
+                        "RetainLine": true,
+                        "InsertBefore": "",
+                        "InsertAfter": "",
+                        "TrimTextStart": 5,
+                        "TrimTextEnd": 38
+                    }
+                ],
+                "required": [
+                    "Filename",
+                    "FileLocation",
+                    "Enable",
+                    "RetainLine",
+                    "InsertBefore",
+                    "InsertAfter",
+                    "TrimTextStart",
+                    "TrimTextEnd"
+                ],
+                "properties": {
+                    "Filename": {
+                        "$id": "#/items/anyOf/0/properties/Filename",
+                        "type": "string",
+                        "title": "The Filename schema",
+                        "description": "Name of file to update.",
+                        "examples": [
+                            "filename.ext"
+                        ]
+                    },
+                    "FileLocation": {
+                        "$id": "#/items/anyOf/0/properties/FileLocation",
+                        "type": "string",
+                        "title": "The FileLocation schema",
+                        "description": "Files location. Defaults to workspace folder on empty string.\nEg. \"\"",
+                        "default": "",
+                        "examples": [
+                            "${workspaceFolder}",
+                            "${globalStorage}"
+                        ]
+                    },
+                    "Enable": {
+                        "$id": "#/items/anyOf/0/properties/Enable",
+                        "type": "boolean",
+                        "title": "The Enable schema",
+                        "description": "Enable updating this file.",
+                        "default": false,
+                        "examples": [
+                            true
+                        ]
+                    },
+                    "RetainLine": {
+                        "$id": "#/items/anyOf/0/properties/RetainLine",
+                        "type": "boolean",
+                        "title": "The RetainLine schema",
+                        "description": "Retains the new version macro line. New version string is inserted 2 lines below macro line",
+                        "default": false,
+                        "examples": [
+                            true
+                        ]
+                    },
+                    "InsertBefore": {
+                        "$id": "#/items/anyOf/0/properties/InsertBefore",
+                        "type": "string",
+                        "title": "The InsertBefore schema",
+                        "description": "Text to insert after new version string.",
+                        "default": "",
+                        "examples": [
+                            "v",
+                            "version "
+                        ]
+                    },
+                    "InsertAfter": {
+                        "$id": "#/items/anyOf/0/properties/InsertAfter",
+                        "type": "string",
+                        "title": "The InsertAfter schema",
+                        "description": "Text to insert before new version string.",
+                        "default": "",
+                        "examples": [
+                            "-Alpha",
+                            "=Beta"
+                        ]
+                    },
+                    "TrimTextStart": {
+                        "$id": "#/items/anyOf/0/properties/TrimTextStart",
+                        "type": "integer",
+                        "title": "The TrimTextStart schema",
+                        "description": "Trim text before new version string. (character Count)",
+                        "default": 0,
+                        "examples": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7,
+                            8,
+                            9
+                        ]
+                    },
+                    "TrimTextEnd": {
+                        "$id": "#/items/anyOf/0/properties/TrimTextEnd",
+                        "type": "integer",
+                        "title": "The TrimTextEnd schema",
+                        "description": "Trim text after new version string. (character Count)",
+                        "default": 0,
+                        "examples": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7,
+                            8,
+                            9
+                        ]
+                    }
+                },
+                "additionalProperties": true
+            }
+        ]
     }
 }

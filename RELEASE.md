@@ -1,12 +1,8 @@
 # Release Notes
 
-## [0.0.6] 2022-02-01
-- Added - Files settings option to retain v-inc line in file (`RetainLine`).
-- Added - Files settings option to trim characters from start of line with V-INC macro (`TrimTextStart`).
-- Added - Files settings option to trim characters from end of line with V-INC macro (`TrimTextEnd`).
-- Added - Date and Time macros.
-- Added - Edit example files command.
-- Updated - Screenshot has been updated to reflect the new changes.
+## [0.0.7] 2022-02-06
+### Added
+- Added version-inc-schema.json for settings validation (Greatly simplifies adding new file entries)
 
 
 For a full list of changes, please see the projects [Changelog](CHANGELOG.md) file.
