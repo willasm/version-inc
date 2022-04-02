@@ -2,7 +2,7 @@
 	"name": "version-inc",
 	"displayName": "Version Inc",
 	"description": "Increments the version in package.json file",
-	"version": "0.0.8",
+	"version": "1.0.0",
 	"publisher": "willasm",
 	"author": {
 		"name": "William McKeever"
@@ -27,9 +27,7 @@
 		"update"
 	],
 	"activationEvents": [
-		"onStartupFinished",
-		"onCommand:version-inc.version-inc",
-		"onCommand:version-inc.version-dec"
+		"workspaceContains:package.json"
 	],
 	"bugs": {
 		"url": "https://github.com/willasm/version-inc/issues",
@@ -60,6 +58,26 @@
 				"title": "Version Inc: Edit Example Files"
 			}
 		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "version-inc.version-inc",
+					"when": "version-inc.workspaceHasPackageJSON"
+				},
+				{
+					"command": "version-inc.version-dec",
+					"when": "version-inc.workspaceHasPackageJSON"
+				},
+				{
+					"command": "version-inc.edit-files-list",
+					"when": "version-inc.workspaceHasPackageJSON"
+				},
+				{
+					"command": "version-inc.edit-example-files",
+					"when": "version-inc.workspaceHasPackageJSON"
+				}
+			]
+		},
 		"configuration": [
 			{
 				"title": "Version Inc",
@@ -67,7 +85,12 @@
 					"version-inc.statusBarPrompt": {
 						"type": "boolean",
 						"default": false,
-						"description": "Prompt for choice of Increment or Decrement version"
+						"description": "Prompt for choice of Increment or Decrement version from status bar button (Will use increment by default)"
+					},
+					"version-inc.useDisplayName": {
+						"type": "boolean",
+						"default": false,
+						"description": "Show displayName value on status bar button (Uses Name value otherwise)"
 					}
 				}
 			}
@@ -75,7 +98,7 @@
 		"jsonValidation": [
 			{
 				"fileMatch": "version-inc-*.json",
-				"url": "./src\\version-inc-schema.json"
+				"url": "./src/version-inc-schema.json"
 			}
 		]
 	},

@@ -3,7 +3,6 @@ const fs = require("fs");
 const path = require("path");
 const { readFile } = require('fs/promises')
 const { join } = require('path');
-const { strictEqual } = require("assert");
 
 module.exports = {
     activate,
@@ -18,21 +17,27 @@ let packageJsonFile;
 let projectName;
 let settings = vscode.workspace.getConfiguration("version-inc");
 let promptStatusBarCommand = settings.get("statusBarPrompt");
+let useDisplayNameStatusBar = settings.get("useDisplayName");
 
-// ========================================================================== //
-// ---=== Function Activate (Extension Activation) ===---
-// ========================================================================== //
+//  ╭──────────────────────────────────────────────────────────────────────────────╮
+//  │                            ● Function Activate ●                             │
+//  ╰──────────────────────────────────────────────────────────────────────────────╯
 async function activate(context) {
 
-    // ========================================================================== //
-    //      Activate - Initialize Extension
+    // • Activate - Initialize Extension • 
+    //---------------------------------------------------------------------------------------------------------
+    // "activationEvents" - "workspaceContains:package.json" in manifest ensures folder has a package.json file
+    // so we can enable command pallette menu items
+    vscode.commands.executeCommand('setContext', 'version-inc.workspaceHasPackageJSON', true);
+    //---------------------------------------------------------------------------------------------------------
     globalSettingsPath = context.globalStoragePath;
     packageJsonFile = join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'package.json');
     packageFile = await readFile(packageJsonFile);      // Read file into memory
     packageJson = JSON.parse(packageFile.toString());   // Parse json
-    projectName = packageJson['displayName'];           // Get displayName for status bar project name
-    if (projectName === undefined) {
-        projectName = packageJson['name'];              // Get displayName for status bar project name
+    if (useDisplayNameStatusBar) {
+        projectName = packageJson['displayName'];       // Get displayName value for status bar project name
+    } else {
+        projectName = packageJson['name'];              // Get name value for status bar project name
     }
     globalSettingsFile = globalSettingsPath + '\\' + 'version-inc-' + projectName + '.json';    // Files list json file
     globalExampleFileJS = globalSettingsPath + '\\' + 'example.js';                             // Example JS file
@@ -43,67 +48,73 @@ async function activate(context) {
     await initStatusBar();                  // Initialize status bar item
     myStatusBarItem.show();                 // Show status bar item
 
-    // ========================================================================== //
-    //      Activate - Register Extension Commands
+    // • Activate - Register Extension Commands • 
     vscode.commands.registerCommand('version-inc.version-inc', incVersion);
     vscode.commands.registerCommand('version-inc.version-dec', decVersion);
     vscode.commands.registerCommand('version-inc.edit-files-list', editFilesList);
     vscode.commands.registerCommand('version-inc.edit-example-files', editExampleFiles);
     vscode.commands.registerCommand('version-inc.version-pick', pickCommand);
 
-    // ========================================================================== //
-    //      Activate - Push Subscriptions
+    // • Activate - Push Subscriptions • 
     context.subscriptions.push(incVersion);
     context.subscriptions.push(decVersion);
     context.subscriptions.push(editFilesList);
     context.subscriptions.push(editExampleFiles);
     context.subscriptions.push(pickCommand);
-    context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(fileSaved));
-}
 
-// ========================================================================== //
-// ---=== initStatusBar (Initialize Status Bar Item) ===---
-// ========================================================================== //
+    // • Activate - If user saved package.json update status bar button • 
+    vscode.workspace.onDidSaveTextDocument((TextDocument) => {
+        if (TextDocument.fileName === packageJsonFile) {
+            initStatusBar();
+        };
+    }, null, context.subscriptions);
+
+
+};
+
+//  ╭──────────────────────────────────────────────────────────────────────────────╮
+//  │                          ● Function initStatusBar ●                          │
+//  │                                                                              │
+//  │                        • Initialize Status Bar Item •                        │
+//  ╰──────────────────────────────────────────────────────────────────────────────╯
 async function initStatusBar() {
     const packageFile = await readFile(packageJsonFile);                        // Read file into memory
     const packageJson = JSON.parse(packageFile.toString());                     // Parse json
     const version = packageJson['version'];                                     // Get projects current version for status bar
     myStatusBarItem.text = '$(versions) ' + projectName + ' ' + 'v' + version   // Update status bar items text
-}
+};
 
-// ========================================================================== //
-// ---=== createStatusBarItem (Create Status Bar Item) ===---
-// ========================================================================== //
+//  ╭──────────────────────────────────────────────────────────────────────────────╮
+//  │                       ● Function createStatusBarItem ●                       │
+//  │                                                                              │
+//  │                          • Create Status Bar Item •                          │
+//  ╰──────────────────────────────────────────────────────────────────────────────╯
 function createStatusBarItem() {
-    // If status bar item is undefined then create it
+    // • createStatusBarItem - If status bar item is undefined then create it • 
     if (myStatusBarItem === undefined) {
         myStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1); // Place on left side of status bar
         myStatusBarItem.command = 'version-inc.version-pick';       // Set command to version inc/dec picker command
         myStatusBarItem.tooltip = 'Update package.json version';    // Set tooltip text
     }
-}
+};
 
-// ========================================================================== //
-// ---=== fileSaved (Called Everytime User Saves a File) ===---
-// ========================================================================== //
-function fileSaved() {
-    initStatusBar();    // Update status bar (Ensures update if user edits package.json)
-}
-
-// ========================================================================== //
-// ---=== pickCommand (Prompt User for Version Update Method) ===---
-// ========================================================================== //
+//  ╭──────────────────────────────────────────────────────────────────────────────╮
+//  │                           ● Function pickCommand ●                           │
+//  │                                                                              │
+//  │                  • Prompt User for Version Update Method •                   │
+//  ╰──────────────────────────────────────────────────────────────────────────────╯
 async function pickCommand() {
 
-    if (!promptStatusBarCommand) {  // Increment version if prompt is disabled
-        incVersion();               // Increment version
+    // • pickCommand - Increment version if prompt is disabled • 
+    if (!promptStatusBarCommand) {
+        incVersion();
         return;
     }
 
-    // Prompt user for choice of inc/dec version
+    // • pickCommand - Prompt user for choice of inc/dec version • 
     let options = {
         placeHolder: "Increment or Decrement Version?",
-        title: "---=== Version Inc - Select Version Update Format ===---"
+        title: "---=== Version Inc - Select Version Update Task ===---"
     };
     const pick = await vscode.window.showQuickPick([{
             label: 'Increment',
@@ -115,28 +126,42 @@ async function pickCommand() {
         }
     ], options);
 
-    if (!pick)          // Canceled
+    // • pickCommand - User Canceled • 
+    if (!pick) {
         return;
+    }
 
-    if (pick == 'Increment') {
+    // • pickCommand - Perform Increment or Decrement • 
+    if (pick.label === 'Increment') {
         incVersion();   // Increment version
     } else {
         decVersion();   // Decrement version
     }
-}
+};
 
-// ========================================================================== //
-// ---=== incVersion (Increment Project Version) ===---
-// ========================================================================== //
+//  ╭──────────────────────────────────────────────────────────────────────────────╮
+//  │                           ● Function incVersion ●                            │
+//  │                                                                              │
+//  │                        • Increment Project Version •                         │
+//  ╰──────────────────────────────────────────────────────────────────────────────╯
 async function incVersion() {
+    // • incVersion - Verify package.json exists • 
     packagePath = join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'package.json');
     if (!fs.existsSync(packagePath)) {
         vscode.window.showWarningMessage('No package.json File Found!');
         return;
-    }
+    };
+
+    // • incVersion - Read package.json into memory • 
     const packageFile = await readFile(this.packagePath);
     const packageJson = JSON.parse(packageFile.toString());
-    const displayName = packageJson['displayName'];
+    if (useDisplayNameStatusBar) {
+        projectName = packageJson['displayName'];       // Get displayName value for status bar project name
+    } else {
+        projectName = packageJson['name'];              // Get name value for status bar project name
+    };
+
+    // • incVersion - Inititialize possible new version values • 
     const version = packageJson['version'];
     const versionArr = version.split('.').map(Number);
     const versions = {
@@ -145,9 +170,9 @@ async function incVersion() {
         patch: [versionArr[0], versionArr[1], versionArr[2] + 1].join('.')
     };
 
-    // Create list of options
+    // • incVersion - Increment Project Version • 
     let options = {
-        placeHolder: "Select which version to update",
+        placeHolder: "Increment Patch, Minor, or Major",
         title: "---=== Version Inc - Increment Version ===---"
     };
     const pick = await vscode.window.showQuickPick([{
@@ -164,96 +189,151 @@ async function incVersion() {
         }
     ], options);
 
+    // • incVersion - Return if user cancelled • 
     if (!pick) {
         return;
-    }
+    };
 
-    // Choose new version
+    // • incVersion - Choose new version • 
     const newVersion = versions[pick.label.toLowerCase()];
-    // Replace original file version with new one
+    // • incVersion - Replace original file version with new one • 
     packageJson.version = newVersion;
-    // Update package.json with new version
+    // • incVersion - Update package.json with new version • 
     fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, '\t'));
-    // Notify user of new version
+    // • incVersion - Notify user of new version • 
     vscode.window.showInformationMessage(`Version Bumped to ${newVersion}`);
-    myStatusBarItem.text = '$(versions) ' + displayName + ' ' + 'v' + newVersion;
+    myStatusBarItem.text = '$(versions) ' + projectName + ' ' + 'v' + newVersion;
     updateOtherFiles(newVersion);
-}
+};
 
-// ========================================================================== //
-// ---=== decVersion (Decrement Project Version) ===---
-// ========================================================================== //
+//  ╭──────────────────────────────────────────────────────────────────────────────╮
+//  │                           ● Function decVersion ●                            │
+//  │                                                                              │
+//  │                        • Decrement Project Version •                         │
+//  ╰──────────────────────────────────────────────────────────────────────────────╯
 async function decVersion() {
+    // • decVersion - Verify package.json exists • 
     packagePath = join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'package.json');
     if (!fs.existsSync(packagePath)) {
         vscode.window.showWarningMessage('No package.json File Found!');
         return;
     }
+
+    // • decVersion - Read package.json into memory • 
     const packageFile = await readFile(this.packagePath);
     const packageJson = JSON.parse(packageFile.toString());
-    const displayName = packageJson['displayName'];
+    if (useDisplayNameStatusBar) {
+        projectName = packageJson['displayName'];       // Get displayName value for status bar project name
+    } else {
+        projectName = packageJson['name'];              // Get name value for status bar project name
+    }
+
+    // • decVersion - Inititialize possible new version values • 
     const version = packageJson['version'];
     const versionArr = version.split('.').map(Number);
-    const versions = {
-        major: [versionArr[0] - 1, versionArr[1], versionArr[2]].join('.'),
-        minor: [versionArr[0], versionArr[1] - 1, versionArr[2]].join('.'),
-        patch: [versionArr[0], versionArr[1], versionArr[2] - 1].join('.')
-    }
+    const versionArrNew = version.split('.').map(Number);
+    let canUpdateMajor;
+    let canUpdateMinor;
+    let canUpdatePatch;
+
+    // • decVersion - Inform user if at v0.0.0 • 
     if (versionArr[0] == '0' && versionArr[1] == '0' && versionArr[2] == '0') {
-        vscode.window.showWarningMessage('Cannot reduce v0.0.0');
+        vscode.window.showWarningMessage('Cannot reduce version from v0.0.0');
         return;
     }
-    versions.major = versions.major.replace('-1', '0')
-    versions.minor = versions.minor.replace('-1', '0')
-    versions.patch = versions.patch.replace('-1', '0')
 
-    // Create list of options
+    // • decVersion - Decrease versions if possible • 
+    if (versionArrNew[0] > 0) {
+        versionArrNew[0]--;
+        majorNew = [versionArrNew[0], versionArr[1], versionArr[2]].join('.'),
+        canUpdateMajor = true;
+    }
+    if (versionArrNew[1] > 0) {
+        versionArrNew[1]--;
+        minorNew = [versionArr[0], versionArrNew[1], versionArr[2]].join('.'),
+        canUpdateMinor = true;
+    }
+    if (versionArrNew[2] > 0) {
+        versionArrNew[2]--;
+        patchNew = [versionArr[0], versionArr[1], versionArrNew[2]].join('.'),
+        canUpdatePatch = true;
+    }
+
+    // • decVersion - Define version strings for possible picks • 
+    const versions = {
+        major: [versionArrNew[0], versionArr[1], versionArr[2]].join('.'),
+        minor: [versionArr[0], versionArrNew[1], versionArr[2]].join('.'),
+        patch: [versionArr[0], versionArr[1], versionArrNew[2]].join('.')
+    }
+
+    // • decVersion - Create list of options • 
     let options = {
-        placeHolder: "Select which version to update",
+        placeHolder: "Decrement Patch, Minor, or Major",
         title: "---=== Version Inc - Decrement Version ===---"
     };
-    const pick = await vscode.window.showQuickPick([{
-            label: 'Patch',
-            detail: `${version} → ${versions.patch}`
-        },
-        {
-            label: 'Minor',
-            detail: `${version} → ${versions.minor}`
-        },
-        {
-            label: 'Major',
-            detail: `${version} → ${versions.major}`
-        }
-    ], options);
 
+    // • decVersion - Define Pick List Items • 
+    let pickItems = [];
+    const pickPatch = {
+        label: 'Patch',
+        detail: `${version} → ${patchNew}`
+    };
+    const pickMinor = {
+        label: 'Minor',
+        detail: `${version} → ${minorNew}`
+    };
+    const pickMajor = {
+        label: 'Major',
+        detail: `${version} → ${majorNew}`
+    };
+
+    // • decVersion - Push valid pick items to the array • 
+    if (canUpdatePatch) {
+        pickItems.push(pickPatch);
+    };
+    if (canUpdateMinor) {
+        pickItems.push(pickMinor);
+    };
+    if (canUpdateMajor) {
+        pickItems.push(pickMajor);
+    };
+
+    // • decVersion - Wait for user to pick item • 
+    const pick = await vscode.window.showQuickPick(pickItems, options);
+
+    // • decVersion - Return if user cancelled • 
     if (!pick) {
         return;
     }
 
-    // Choose new version
+    // • decVersion - Choose new version • 
     const newVersion = versions[pick.label.toLowerCase()];
-    // Replace original file version with new one
+    // • decVersion - Replace original file version with new one • 
     packageJson.version = newVersion;
-    // Update package.json with new version
+    // • decVersion - Update package.json with new version • 
     fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, '\t'));
-    // Notify user of new version
+    // • decVersion - Notify user of new version • 
     vscode.window.showInformationMessage(`Version Bumped to ${newVersion}`);
-    myStatusBarItem.text = '$(versions) ' + displayName + ' ' + 'v' + newVersion;
+    myStatusBarItem.text = '$(versions) ' + projectName + ' ' + 'v' + newVersion;
     updateOtherFiles(newVersion);
-}
+};
 
-// ========================================================================== //
-// ---=== editFiles (Edit Files in version-inc.json) ===---
-// ========================================================================== //
+//  ╭──────────────────────────────────────────────────────────────────────────────╮
+//  │                            ● Function editFiles ●                            │
+//  │                                                                              │
+//  │                      • Edit Files in version-inc.json •                      │
+//  ╰──────────────────────────────────────────────────────────────────────────────╯
 async function editFilesList() {
     initSettingsFilePath(myContext);
     var document = await vscode.workspace.openTextDocument(globalSettingsFile); // Open it for editing
     await vscode.window.showTextDocument(document);
-}
+};
 
-// ========================================================================== //
-// ---=== editExampleFiles (Edit version-inc Example Files) ===---
-// ========================================================================== //
+//  ╭──────────────────────────────────────────────────────────────────────────────╮
+//  │                        ● Function editExampleFiles ●                         │
+//  │                                                                              │
+//  │                      • Edit version-inc Example Files •                      │
+//  ╰──────────────────────────────────────────────────────────────────────────────╯
 async function editExampleFiles() {
     initSettingsFilePath(myContext);
     const exampleMDFilePath = path.join(globalSettingsPath, 'example.md');
@@ -262,19 +342,21 @@ async function editExampleFiles() {
     var document2 = await vscode.workspace.openTextDocument(exampleJSFilePath); // Open it for editing
     await vscode.window.showTextDocument(document1);
     await vscode.window.showTextDocument(document2);
-}
+};
 
-// ========================================================================== //
-// ---=== updateOtherFiles (Update Other Files with the New Version) ===---
-// ========================================================================== //
+//  ╭──────────────────────────────────────────────────────────────────────────────╮
+//  │                        ● Function updateOtherFiles ●                         │
+//  │                                                                              │
+//  │                 • Update Other Files with the New Version •                  │
+//  ╰──────────────────────────────────────────────────────────────────────────────╯
 async function updateOtherFiles(newVersion) {
 
-    // Load settings file into memory
+    // • updateOtherFiles - Load settings file into memory • 
     const packageFile = await readFile(globalSettingsFile);
     const packageJson = JSON.parse(packageFile.toString("utf-8"));
     const length = packageJson['length'];
 
-    // Loop through all files in the settings file
+    // • updateOtherFiles - Loop through all files in the settings file • 
     for (let i = 0; i < length; i++) {
         var file = packageJson[i]['Filename']; // File name
         var location = packageJson[i]['FileLocation']; // File Location
@@ -288,7 +370,7 @@ async function updateOtherFiles(newVersion) {
             var location = vscode.workspace.workspaceFolders[0].uri.fsPath + '\\' + location; // Path relative to workspace folder
         }
 
-        // Retrieve the rest of the settings
+        // • updateOtherFiles - Retrieve the rest of the settings • 
         var enable = packageJson[i]['Enable'];                      // Enable replace flag
         var insBefore = packageJson[i]['InsertBefore'];             // String to insert before version string
         var insAfter = packageJson[i]['InsertAfter'];               // String to insert after version string
@@ -297,14 +379,10 @@ async function updateOtherFiles(newVersion) {
         var trimTextEnd = packageJson[i]['TrimTextEnd'];            // Number of characters to trim from end of line
         var newVersionString = insBefore + newVersion + insAfter;   // Final new version string
 
-        //----------------------------------------
-        // V-INC Version Number Regular Expression
-        //----------------------------------------
+        // • updateOtherFiles - V-INC Version Number Regular Expression • 
         const vincRegex = /v-inc/gmi;
 
-        //----------------------------------------
-        // Time Regular Expressions
-        //----------------------------------------
+        // • updateOtherFiles - Time Regular Expressions • 
         // AM/PM Uppercase Regex
         const ampmuRegex = /\${AMPMU}/gmi;
         // AM/PM Lowercase Regex
@@ -318,9 +396,7 @@ async function updateOtherFiles(newVersion) {
         // Seconds Regex
         const secRegex = /\${SEC}/gmi;
 
-        //----------------------------------------
-        // Date Regular Expressions
-        //----------------------------------------
+        // • updateOtherFiles - Date Regular Expressions • 
         // Year Long Regex
         const yearLongRegex = /\${YEAR4}/gmi;
         // Year Short Regex
@@ -334,9 +410,7 @@ async function updateOtherFiles(newVersion) {
         // Date Regex
         const dateRegex = /\${DATE}/gmi;
 
-        //----------------------------------------
-        // Get date and time for associated macros
-        //----------------------------------------
+        // • updateOtherFiles - Get date and time for associated macros • 
         var date = new Date();
         var [year, month, day] = [date.getFullYear(), date.getMonth()+1, date.getDate()];
         var [hours, minutes, seconds] = [date.getHours(), date.getMinutes(), date.getSeconds()];
@@ -361,10 +435,7 @@ async function updateOtherFiles(newVersion) {
             var ampmL = 'am';
         }
 
-        //----------------------------------------
-        // Convert to strings and add leading
-        // zero if needed
-        //----------------------------------------
+        // • updateOtherFiles - Convert to strings and add leading zero if needed • 
         var yearLongStr = year.toString();
         var yearShortStr = year.toString().slice(2,4);
         if (month == 1) {
@@ -422,10 +493,7 @@ async function updateOtherFiles(newVersion) {
         var h12Str = h12.toString().padStart(2, '0');
         var h24Str = h24.toString().padStart(2, '0');
 
-        //----------------------------------------
-        // If this files update flag is enabled
-        // then process it
-        //----------------------------------------
+        // • updateOtherFiles - If this files update flag is enabled then process it • 
         if (enable) {
             let targetFile = join(location, file);                              // Full path to target file
             var document = await vscode.workspace.openTextDocument(targetFile); // Open the file
@@ -450,7 +518,7 @@ async function updateOtherFiles(newVersion) {
                 var result = text;                                      // Results Buffer
                 var dirtyFlag = false;                                  // Status Flag
 
-                // Perform all string replacements on current line 
+                // • updateOtherFiles - Perform all string replacements on current line •  
                 var result = result.replaceAll(vincRegex,newVersionString);
                 var result = result.replaceAll(ampmuRegex, ampmU);
                 var result = result.replaceAll(ampmlRegex, ampmL);
@@ -523,9 +591,7 @@ async function updateOtherFiles(newVersion) {
                     }
                 }
 
-                //----------------------------------------
-                // Now Replace Current Line in the File
-                //----------------------------------------
+                // • updateOtherFiles - Now Replace Current Line in the File • 
                 if (dirtyFlag) {
                     const currentLineLength = text.length;
                     await editor.edit(editBuilder => {
@@ -536,14 +602,16 @@ async function updateOtherFiles(newVersion) {
             }
         }
     }
-}
+};
 
-// ========================================================================== //
-// ---=== initSettingsFilePath (Global Storage Settings File for My Extension) ===---
-// ========================================================================== //
+//  ╭──────────────────────────────────────────────────────────────────────────────╮
+//  │                      ● Function initSettingsFilePath ●                       │
+//  │                                                                              │
+//  │              • Global Storage Settings File for My Extension •               │
+//  ╰──────────────────────────────────────────────────────────────────────────────╯
 async function initSettingsFilePath(context) {
 
-    // Default files list settings json file
+    // • initSettingsFilePath - Default files list settings json file • 
     const defaultSettings = '[\n\t' +
                             '{\n\t\t' +
                             '\"Filename\": \"example.md\",\n\t\t' +
@@ -566,11 +634,11 @@ async function initSettingsFilePath(context) {
                             '\"TrimTextEnd\": 0\n\t' +
                             '}\n' +
                             ']\n';
-    // example.md file
+    // • initSettingsFilePath - example.md file • 
     const exampleMD = '# Version-Inc example in a markdown file\n\n' +
                       '## Change Log\n\n' +
                       '<!-- ## [v-inc] - ${YEAR4}-${MONTHNUMBER}-${DATE} Note: this Line will be preserved -->\n';
-    // example.js file
+    // • initSettingsFilePath - example.js file • 
     const exampleJS = '//--------------------------------------------------\n' +
                       '// Version-Inc example in a java script file\n' +
                       '//--------------------------------------------------\n' +
@@ -582,7 +650,8 @@ async function initSettingsFilePath(context) {
                       '//\n' +
                       '// Product version: v-inc\n' +
                       '//--------------------------------------------------\n';
-    // If folder does exist then verifiy extensions files exist
+
+    // • initSettingsFilePath - If folder does exist then verifiy extensions files exist • 
     if (fs.existsSync(globalSettingsPath)) {
         if (!fs.existsSync(globalSettingsFile)) {
             // Write new settings file if it does not exist
@@ -599,18 +668,18 @@ async function initSettingsFilePath(context) {
         return;
     }
 
-// ========================================================================== //
-// ---=== initSettingsFilePath (Create Global Storage and Files) ===---
-    // If folder does not exist then create it and the default settings file
+    // • initSettingsFilePath - Create Global Storage Folder and Files • 
     fs.mkdirSync(globalSettingsPath, { recursive: true });
     const exampleMDFilePath = path.join(globalSettingsPath, 'example.md');
     const exampleJSFilePath = path.join(globalSettingsPath, 'example.js');
     fs.writeFileSync(globalSettingsFile, defaultSettings, 'utf8');
     fs.writeFileSync(exampleMDFilePath, exampleMD, 'utf8');
     fs.writeFileSync(exampleJSFilePath, exampleJS, 'utf8');
-}
+};
 
-// ========================================================================== //
-// ---=== deactivate (Deactivate Extension Cleanup) ===---
-// ========================================================================== //
+//  ╭──────────────────────────────────────────────────────────────────────────────╮
+//  │                           ● Function deactivate ●                            │
+//  │                                                                              │
+//  │                       • Deactivate Extension Cleanup •                       │
+//  ╰──────────────────────────────────────────────────────────────────────────────╯
 function deactivate() {}

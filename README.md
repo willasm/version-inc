@@ -7,18 +7,21 @@
 Increases the version in projects package.json file.
 Inserts version string and macros into other project files.
 
-
 ## Features
 - Increase the version in projects package.json file.
 - Optionally, insert new version string into other project files.
 - Insert date and/or time macros into other project files.
 - Current version is displayed on the status bar.
-- Update version by clicking status bar item.
-
+- Update version by clicking status bar button.
 
 ## Screenshot
 ![Example Screenshot](./images/version-inc-demo.gif)
 
+## Settings
+
+`"version-inc.statusBarPrompt"` - Status Bar button when clicked with the mouse will prompt for Version Increment or Decrement when this is enabled. Default is 'disabled' and when the button is clicked version increment will occur.
+
+`"version-inc.useDisplayName"` - Status Bar button text will display the displayName: "value" from package.json when this setting is enabled. Displays the name: "value" when this is disabled.
 
 ## Usage
 The following commands are available from the command pallette: (Windows: CTRL+Shift+P or F1) (Mac: CMD+Shift+P)
@@ -81,34 +84,35 @@ To see this extension in operation, open the example files with the command `Ver
 
 Note: The `RetainLine`, `"TrimTextStart"` and `"TrimTextStart"` options were added in v0-0-6 so if you have modified the settings file from a previous version you will need to add the respective lines to any project settings file you have (see the example settings above).
 
-Note: The updated files are not automatically saved. This allows you to review the changes made and to continue making any other changes you require.
+Note: The updated files are not automatically saved. This allows you to review the changes made and to continue making any other changes you require. The package.json file however is save with the new version string inserted.
+
+Here is a before and after look at one of the example files that has been updated...
+
+## Before...
+![Example Screenshot](./images/BeforeVersionInc.png)
+
+## After...
+![Example Screenshot](./images/AfterVersionInc.png)
 
 
-## Macros Available
+## Macros...
 | Macro                 | Macro Text is Replaced Replaced With                                     |
 | --------------------- | ------------------------------------------------------------------------ |
-| `V-INC`               | Display the new version string.                                          |
-| `${H12}`              | Display current time hours (two digit - 12 hour format).                 |
-| `${H24}`              | Display current time hours (two digit - 24 hour format).                 |
-| `${MIN}`              | Display current time minutes (two digit format eg. 01).                  |
-| `${SEC}`              | Display current time seconds (two digit format eg. 01).                  |
-| `${AMPMU}`            | Display AM or PM (upper case).                                           |
-| `${AMPMU}`            | Display am or pm (lower case).                                           |
-| `${YEAR4}`            | Display Year (4 digits eg. 2022).                                        |
-| `${YEAR2}`            | Display Year (2 digits eg. 22).                                          |
-| `${MONTHTEXTL}`       | Display Month full text (eg. January).                                   |
-| `${MONTHTEXTS}`       | Display Month abbreviated text (eg. Jan).                                |
-| `${MONTHNUMBER}`      | Display Month number (two digit format eg. 01 for January).              |
-| `${DATE}`             | Display the date (two digit format eg. 01 for the first of the month).   |
+| `V-INC`               | Insert the new version string.                                          |
+| `${H12}`              | Insert current time hours (two digit - 12 hour format).                 |
+| `${H24}`              | Insert current time hours (two digit - 24 hour format).                 |
+| `${MIN}`              | Insert current time minutes (two digit format eg. 01).                  |
+| `${SEC}`              | Insert current time seconds (two digit format eg. 01).                  |
+| `${AMPMU}`            | Insert AM or PM (upper case).                                           |
+| `${AMPMU}`            | Insert am or pm (lower case).                                           |
+| `${YEAR4}`            | Insert Year (4 digits eg. 2022).                                        |
+| `${YEAR2}`            | Insert Year (2 digits eg. 22).                                          |
+| `${MONTHTEXTL}`       | Insert Month full text (eg. January).                                   |
+| `${MONTHTEXTS}`       | Insert Month abbreviated text (eg. Jan).                                |
+| `${MONTHNUMBER}`      | Insert Month number (two digit format eg. 01 for January).              |
+| `${DATE}`             | Insert the date (two digit format eg. 01 for the first of the month).   |
 
-Note: The text of the macros is case insensitive. I plan to add more macros in the future so if there is anything you would like added please let me know at my [Github Issue Page](https://github.com/willasm/version-inc/issues).
-
-## Settings
-
-`"version-inc.statusBarPrompt"` - Status Bar item when clicked with the mouse - prompt for Version Increment or Decrement
-
-Default: No prompt, just perform version increment.
-
+Note: The text of the macros is case insensitive. I plan to add more macros in the future so if there is anything you would like added please let me know at my [Github Issues Page](https://github.com/willasm/version-inc/issues).
 
 ## Release Notes
 See the [Release Notes](RELEASE.md) for details.
