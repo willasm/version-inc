@@ -2,10 +2,22 @@
 <!--
 ## [Unreleased]
 ### Added
+- "activationEvents" now set to "workspaceContains:package.json"
+  (Extension will only load if package.json exists)
+- Use package.json displayName: "value" for status bar button text setting
+  (Uses name: "value" otherwise)
+- "menus", "commandPalette", "command", "when": "workspaceHasPackageJSON" to manifest
+  (Commands will now only appear when package.json exists)
+- Screenshots of before and after version increment on one of the example files
 ### Changed
+- Now uses "name" value from manifest for status bar button text (Use displayName value option added to settings)
 ### Deprecated
 ### Removed
 ### Fixed
+- The "description" keys for "InsertBefore" and "InsertAfter" in `version-inc-schema.json` were reversed
+- Pick command from status bar button was not working properly
+- Version-inc menu commands now only show when workspace has manifest file (package.json)
+- Version decrement now displays appropiate pick options
 ### Security
 ### Updated 
 -->

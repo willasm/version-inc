@@ -106,7 +106,7 @@
                         "$id": "#/items/anyOf/0/properties/InsertBefore",
                         "type": "string",
                         "title": "The InsertBefore schema",
-                        "description": "Text to insert after new version string.",
+                        "description": "Text to insert before new version string.",
                         "default": "",
                         "examples": [
                             "v",
@@ -117,7 +117,7 @@
                         "$id": "#/items/anyOf/0/properties/InsertAfter",
                         "type": "string",
                         "title": "The InsertAfter schema",
-                        "description": "Text to insert before new version string.",
+                        "description": "Text to insert after new version string.",
                         "default": "",
                         "examples": [
                             "-Alpha",
