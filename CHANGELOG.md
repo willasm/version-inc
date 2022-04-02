@@ -1,6 +1,6 @@
 # Change Log
 <!--
-## [Unreleased]
+## [1.0.0]
 ### Added
 - "activationEvents" now set to "workspaceContains:package.json"
   (Extension will only load if package.json exists)
