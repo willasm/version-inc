@@ -1,17 +1,27 @@
-![](https://vsmarketplacebadge.apphb.com/version-short/willasm.version-inc.svg)
-![](https://vsmarketplacebadge.apphb.com/installs-short/willasm.version-inc.svg)
-![](https://vsmarketplacebadge.apphb.com/downloads-short/willasm.version-inc.svg)
-![](https://vsmarketplacebadge.apphb.com/rating/willasm.version-inc.svg)
+![](https://img.shields.io/visual-studio-marketplace/v/willasm.version-inc)
+![](https://img.shields.io/visual-studio-marketplace/d/willasm.version-inc)
+![](https://img.shields.io/visual-studio-marketplace/r/willasm.version-inc)
+![](https://img.shields.io/visual-studio-marketplace/release-date/willasm.version-inc)
+![](https://img.shields.io/visual-studio-marketplace/last-updated/willasm.version-inc)
 
 # Version Inc
 Increases the version in projects package.json file.
 Inserts version string and macros into other project files.
 
+Note: This extension requires that a package.json file exists in the root workspace folder, it will not load if one is not found.
+
+## What's New
+Now supports projects with multiple package.json files.
+
+Added new setting for additional folders with package.json files.
+
+See [Settings](#settings) for more details
+
 ## Features
-- Increase the version in projects package.json file.
+- Increase the version in projects package.json files.
 - Optionally, insert new version string into other project files.
 - Insert date and/or time macros into other project files.
-- Current version is displayed on the status bar.
+- Current version is displayed on the status bar. (Taken from the package.json file in the root workspace folder)
 - Update version by clicking status bar button.
 
 ## Screenshot
@@ -22,6 +32,12 @@ Inserts version string and macros into other project files.
 `"version-inc.statusBarPrompt"` - Status Bar button when clicked with the mouse will prompt for Version Increment or Decrement when this is enabled. Default is 'disabled' and when the button is clicked version increment will occur.
 
 `"version-inc.useDisplayName"` - Status Bar button text will display the displayName: "value" from package.json when this setting is enabled. Displays the name: "value" when this is disabled.
+
+`"version-inc.packageJsonPaths"` - Allows you to add additional folder locations that contain package.json files. Each additional file can have its version updated. The default settings include the folders `client` and `server`.
+
+Note: The package.json file in the root workspace folder should __*not*__ be included in the list.
+
+Additional Notes: When updating additional project files with macros and V-INC the version used will be taken from the package.json file in the root workspace folder. When updating multiple package.json files you can skip updating any file by hitting Esc key and it will continue to the prompt for the next package.json file. To prevent the prompt for updating a particular package.json file, remove it from the list in the settings. The defaults can also be over ridden by defining the folders with package.json files in the workspace settings.
 
 ## Usage
 The following commands are available from the command pallette: (Windows: CTRL+Shift+P or F1) (Mac: CMD+Shift+P)

@@ -15,9 +15,15 @@ let globalSettingsPath;
 let globalSettingsFile;
 let packageJsonFile;
 let projectName;
+let packageFile;
+let packageJson;
+let majorNew;
+let minorNew;
+let patchNew;
 let settings = vscode.workspace.getConfiguration("version-inc");
 let promptStatusBarCommand = settings.get("statusBarPrompt");
 let useDisplayNameStatusBar = settings.get("useDisplayName");
+let packagePaths = settings.get("packageJsonPaths");
 
 //  ╭──────────────────────────────────────────────────────────────────────────────╮
 //  │                            ● Function Activate ●                             │
@@ -30,6 +36,8 @@ async function activate(context) {
     // so we can enable command pallette menu items
     vscode.commands.executeCommand('setContext', 'version-inc.workspaceHasPackageJSON', true);
     //---------------------------------------------------------------------------------------------------------
+    // Push the workspace root folder into the list of package.json paths (Empty string as it is not in a sub-folder)
+    packagePaths.push("");
     globalSettingsPath = context.globalStoragePath;
     packageJsonFile = join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'package.json');
     packageFile = await readFile(packageJsonFile);      // Read file into memory
@@ -68,7 +76,6 @@ async function activate(context) {
             initStatusBar();
         };
     }, null, context.subscriptions);
-
 
 };
 
@@ -145,65 +152,76 @@ async function pickCommand() {
 //  │                        • Increment Project Version •                         │
 //  ╰──────────────────────────────────────────────────────────────────────────────╯
 async function incVersion() {
-    // • incVersion - Verify package.json exists • 
-    packagePath = join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'package.json');
+    // • incVersion - Verify workspace package.json exists • 
+    let packagePath = join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'package.json');
     if (!fs.existsSync(packagePath)) {
         vscode.window.showWarningMessage('No package.json File Found!');
         return;
     };
 
-    // • incVersion - Read package.json into memory • 
-    const packageFile = await readFile(this.packagePath);
-    const packageJson = JSON.parse(packageFile.toString());
-    if (useDisplayNameStatusBar) {
-        projectName = packageJson['displayName'];       // Get displayName value for status bar project name
-    } else {
-        projectName = packageJson['name'];              // Get name value for status bar project name
-    };
+    // • incVersion - Read each package.json into memory • 
+    for (let i = 0; i < packagePaths.length; i++) {
+        let packageFolder = packagePaths[i];
+        // Ensure this package.json file exists before continuing
+        if (fs.existsSync(join(vscode.workspace.workspaceFolders[0].uri.fsPath, packagePaths[i]+'/package.json'))) {
+            packageFile = await readFile(join(vscode.workspace.workspaceFolders[0].uri.fsPath, packagePaths[i]+'/package.json'));
+            packageJson = JSON.parse(packageFile.toString());
+            if (packageFolder == "Workspace Folder") {
+                if (useDisplayNameStatusBar) {
+                    projectName = packageJson['displayName'];       // Get displayName value for status bar project name
+                } else {
+                    projectName = packageJson['name'];              // Get name value for status bar project name
+                };
+            };
 
-    // • incVersion - Inititialize possible new version values • 
-    const version = packageJson['version'];
-    const versionArr = version.split('.').map(Number);
-    const versions = {
-        major: [versionArr[0] + 1, 0, 0].join('.'),
-        minor: [versionArr[0], versionArr[1] + 1, 0].join('.'),
-        patch: [versionArr[0], versionArr[1], versionArr[2] + 1].join('.')
-    };
+            // • incVersion - Inititialize possible new version values • 
+            const version = packageJson['version'];
+            const versionArr = version.split('.').map(Number);
+            const versions = {
+                major: [versionArr[0] + 1, 0, 0].join('.'),
+                minor: [versionArr[0], versionArr[1] + 1, 0].join('.'),
+                patch: [versionArr[0], versionArr[1], versionArr[2] + 1].join('.')
+            };
 
-    // • incVersion - Increment Project Version • 
-    let options = {
-        placeHolder: "Increment Patch, Minor, or Major",
-        title: "---=== Version Inc - Increment Version ===---"
-    };
-    const pick = await vscode.window.showQuickPick([{
-            label: 'Patch',
-            detail: `${version} → ${versions.patch}`
-        },
-        {
-            label: 'Minor',
-            detail: `${version} → ${versions.minor}`
-        },
-        {
-            label: 'Major',
-            detail: `${version} → ${versions.major}`
-        }
-    ], options);
+            // • incVersion - Increment Project Version • 
+            if (packageFolder == "") {
+                packageFolder = "Workspace Folder";
+            }
+            let options = {
+                placeHolder: "Choose Patch, Minor, or Major to Increment - Esc to cancel",
+                title: `---=== Version Inc - Increment Version for package.json in folder [${packageFolder}] ===---`
+            };
+            const pick = await vscode.window.showQuickPick([{
+                    label: 'Patch',
+                    detail: `${version} → ${versions.patch}`
+                },
+                {
+                    label: 'Minor',
+                    detail: `${version} → ${versions.minor}`
+                },
+                {
+                    label: 'Major',
+                    detail: `${version} → ${versions.major}`
+                }
+            ], options);
 
-    // • incVersion - Return if user cancelled • 
-    if (!pick) {
-        return;
+            // • incVersion - Return if user cancelled • 
+            if (pick) {
+                // • incVersion - Get new version • 
+                const newVersion = versions[pick.label.toLowerCase()];
+                // • incVersion - Replace original file version with new one • 
+                packageJson.version = newVersion;
+                // • incVersion - Update package.json with new version • 
+                fs.writeFileSync(join(vscode.workspace.workspaceFolders[0].uri.fsPath, packagePaths[i]+'/package.json'), JSON.stringify(packageJson, null, '\t'));
+                // • incVersion - Notify user of new version • 
+                vscode.window.showInformationMessage(`Version Bumped to ${newVersion} for package.json in folder [${packageFolder}]`);
+                if (packageFolder == "Workspace Folder") {
+                    myStatusBarItem.text = '$(versions) ' + projectName + ' ' + 'v' + newVersion;
+                    updateOtherFiles(newVersion);
+                };
+            };
+        };
     };
-
-    // • incVersion - Choose new version • 
-    const newVersion = versions[pick.label.toLowerCase()];
-    // • incVersion - Replace original file version with new one • 
-    packageJson.version = newVersion;
-    // • incVersion - Update package.json with new version • 
-    fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, '\t'));
-    // • incVersion - Notify user of new version • 
-    vscode.window.showInformationMessage(`Version Bumped to ${newVersion}`);
-    myStatusBarItem.text = '$(versions) ' + projectName + ' ' + 'v' + newVersion;
-    updateOtherFiles(newVersion);
 };
 
 //  ╭──────────────────────────────────────────────────────────────────────────────╮
@@ -213,109 +231,120 @@ async function incVersion() {
 //  ╰──────────────────────────────────────────────────────────────────────────────╯
 async function decVersion() {
     // • decVersion - Verify package.json exists • 
-    packagePath = join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'package.json');
+    let packagePath = join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'package.json');
     if (!fs.existsSync(packagePath)) {
         vscode.window.showWarningMessage('No package.json File Found!');
         return;
     }
-
+    
     // • decVersion - Read package.json into memory • 
-    const packageFile = await readFile(this.packagePath);
-    const packageJson = JSON.parse(packageFile.toString());
-    if (useDisplayNameStatusBar) {
-        projectName = packageJson['displayName'];       // Get displayName value for status bar project name
-    } else {
-        projectName = packageJson['name'];              // Get name value for status bar project name
-    }
+    for (let i = 0; i < packagePaths.length; i++) {
+        let packageFolder = packagePaths[i];
+        // Ensure this package.json file exists before continuing
+        if (fs.existsSync(join(vscode.workspace.workspaceFolders[0].uri.fsPath, packagePaths[i]+'/package.json'))) {
+            packageFile = await readFile(join(vscode.workspace.workspaceFolders[0].uri.fsPath, packagePaths[i]+'/package.json'));
+            packageJson = JSON.parse(packageFile.toString());
+            if (packageFolder == "Workspace Folder") {
+                if (useDisplayNameStatusBar) {
+                    projectName = packageJson['displayName'];       // Get displayName value for status bar project name
+                } else {
+                    projectName = packageJson['name'];              // Get name value for status bar project name
+                };
+            };
 
-    // • decVersion - Inititialize possible new version values • 
-    const version = packageJson['version'];
-    const versionArr = version.split('.').map(Number);
-    const versionArrNew = version.split('.').map(Number);
-    let canUpdateMajor;
-    let canUpdateMinor;
-    let canUpdatePatch;
+            // • decVersion - Inititialize possible new version values • 
+            const version = packageJson['version'];
+            const versionArr = version.split('.').map(Number);
+            const versionArrNew = version.split('.').map(Number);
+            let canUpdateMajor;
+            let canUpdateMinor;
+            let canUpdatePatch;
 
-    // • decVersion - Inform user if at v0.0.0 • 
-    if (versionArr[0] == '0' && versionArr[1] == '0' && versionArr[2] == '0') {
-        vscode.window.showWarningMessage('Cannot reduce version from v0.0.0');
-        return;
-    }
+            // • decVersion - Inform user if at v0.0.0 • 
+            if (versionArr[0] == '0' && versionArr[1] == '0' && versionArr[2] == '0') {
+                vscode.window.showWarningMessage('Cannot reduce version from v0.0.0');
+                return;
+            }
 
-    // • decVersion - Decrease versions if possible • 
-    if (versionArrNew[0] > 0) {
-        versionArrNew[0]--;
-        majorNew = [versionArrNew[0], versionArr[1], versionArr[2]].join('.'),
-        canUpdateMajor = true;
-    }
-    if (versionArrNew[1] > 0) {
-        versionArrNew[1]--;
-        minorNew = [versionArr[0], versionArrNew[1], versionArr[2]].join('.'),
-        canUpdateMinor = true;
-    }
-    if (versionArrNew[2] > 0) {
-        versionArrNew[2]--;
-        patchNew = [versionArr[0], versionArr[1], versionArrNew[2]].join('.'),
-        canUpdatePatch = true;
-    }
+            // • decVersion - Decrease versions if possible • 
+            if (versionArrNew[0] > 0) {
+                versionArrNew[0]--;
+                majorNew = [versionArrNew[0], versionArr[1], versionArr[2]].join('.'),
+                canUpdateMajor = true;
+            }
+            if (versionArrNew[1] > 0) {
+                versionArrNew[1]--;
+                minorNew = [versionArr[0], versionArrNew[1], versionArr[2]].join('.'),
+                canUpdateMinor = true;
+            }
+            if (versionArrNew[2] > 0) {
+                versionArrNew[2]--;
+                patchNew = [versionArr[0], versionArr[1], versionArrNew[2]].join('.'),
+                canUpdatePatch = true;
+            }
 
-    // • decVersion - Define version strings for possible picks • 
-    const versions = {
-        major: [versionArrNew[0], versionArr[1], versionArr[2]].join('.'),
-        minor: [versionArr[0], versionArrNew[1], versionArr[2]].join('.'),
-        patch: [versionArr[0], versionArr[1], versionArrNew[2]].join('.')
-    }
+            // • decVersion - Define version strings for possible picks • 
+            const versions = {
+                major: [versionArrNew[0], versionArr[1], versionArr[2]].join('.'),
+                minor: [versionArr[0], versionArrNew[1], versionArr[2]].join('.'),
+                patch: [versionArr[0], versionArr[1], versionArrNew[2]].join('.')
+            }
 
-    // • decVersion - Create list of options • 
-    let options = {
-        placeHolder: "Decrement Patch, Minor, or Major",
-        title: "---=== Version Inc - Decrement Version ===---"
+            // • decVersion - Create list of options • 
+            if (packageFolder == "") {
+                packageFolder = "Workspace Folder";
+            }
+            let options = {
+                placeHolder: "Choose Patch, Minor, or Major to Decrement - Esc to cancel",
+                title: `---=== Version Inc - Decrement Version for package.json in folder [${packageFolder}] ===---`
+            };
+
+            // • decVersion - Define Pick List Items • 
+            let pickItems = [];
+            const pickPatch = {
+                label: 'Patch',
+                detail: `${version} → ${patchNew}`
+            };
+            const pickMinor = {
+                label: 'Minor',
+                detail: `${version} → ${minorNew}`
+            };
+            const pickMajor = {
+                label: 'Major',
+                detail: `${version} → ${majorNew}`
+            };
+
+            // • decVersion - Push valid pick items to the array • 
+            if (canUpdatePatch) {
+                pickItems.push(pickPatch);
+            };
+            if (canUpdateMinor) {
+                pickItems.push(pickMinor);
+            };
+            if (canUpdateMajor) {
+                pickItems.push(pickMajor);
+            };
+
+            // • decVersion - Wait for user to pick item • 
+            const pick = await vscode.window.showQuickPick(pickItems, options);
+
+            // • decVersion - Return if user cancelled • 
+            if (pick) {
+                // • decVersion - Get new version • 
+                const newVersion = versions[pick.label.toLowerCase()];
+                // • decVersion - Replace original file version with new one • 
+                packageJson.version = newVersion;
+                // • decVersion - Update package.json with new version • 
+                fs.writeFileSync(join(vscode.workspace.workspaceFolders[0].uri.fsPath, packagePaths[i]+'/package.json'), JSON.stringify(packageJson, null, '\t'));
+                // • decVersion - Notify user of new version • 
+                vscode.window.showInformationMessage(`Version Bumped to ${newVersion} for package.json in folder [${packageFolder}]`);
+                if (packageFolder == "Workspace Folder") {
+                    myStatusBarItem.text = '$(versions) ' + projectName + ' ' + 'v' + newVersion;
+                    updateOtherFiles(newVersion);
+                };
+            };
+        };
     };
-
-    // • decVersion - Define Pick List Items • 
-    let pickItems = [];
-    const pickPatch = {
-        label: 'Patch',
-        detail: `${version} → ${patchNew}`
-    };
-    const pickMinor = {
-        label: 'Minor',
-        detail: `${version} → ${minorNew}`
-    };
-    const pickMajor = {
-        label: 'Major',
-        detail: `${version} → ${majorNew}`
-    };
-
-    // • decVersion - Push valid pick items to the array • 
-    if (canUpdatePatch) {
-        pickItems.push(pickPatch);
-    };
-    if (canUpdateMinor) {
-        pickItems.push(pickMinor);
-    };
-    if (canUpdateMajor) {
-        pickItems.push(pickMajor);
-    };
-
-    // • decVersion - Wait for user to pick item • 
-    const pick = await vscode.window.showQuickPick(pickItems, options);
-
-    // • decVersion - Return if user cancelled • 
-    if (!pick) {
-        return;
-    }
-
-    // • decVersion - Choose new version • 
-    const newVersion = versions[pick.label.toLowerCase()];
-    // • decVersion - Replace original file version with new one • 
-    packageJson.version = newVersion;
-    // • decVersion - Update package.json with new version • 
-    fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, '\t'));
-    // • decVersion - Notify user of new version • 
-    vscode.window.showInformationMessage(`Version Bumped to ${newVersion}`);
-    myStatusBarItem.text = '$(versions) ' + projectName + ' ' + 'v' + newVersion;
-    updateOtherFiles(newVersion);
 };
 
 //  ╭──────────────────────────────────────────────────────────────────────────────╮

@@ -2,7 +2,7 @@
 	"name": "version-inc",
 	"displayName": "Version Inc",
 	"description": "Increments the version in package.json file",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"publisher": "willasm",
 	"author": {
 		"name": "William McKeever"
@@ -91,6 +91,17 @@
 						"type": "boolean",
 						"default": false,
 						"description": "Show displayName value on status bar button (Uses Name value otherwise)"
+					},
+					"version-inc.packageJsonPaths": {
+						"type": "array",
+						"default": [
+							"client",
+							"server"
+						],
+						"items": {
+							"type": "string"
+						},
+						"description": "Additional folders to search for package.json files"
 					}
 				}
 			}
