@@ -1,4 +1,3 @@
 node_modules
-.vscode-test/
-.vscode/*.MD
-.pnotes/
+.pnotes
+.vscode/time_log.json

@@ -5,7 +5,8 @@
 	"version": "1.1.0",
 	"publisher": "willasm",
 	"author": {
-		"name": "William McKeever"
+		"name": "William McKeever",
+		"email": "willmck63@gmail.com"
 	},
 	"license": "MIT - SEE LICENSE IN LICENSE.md",
 	"engines": {
